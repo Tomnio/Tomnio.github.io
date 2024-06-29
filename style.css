@@ -3,5 +3,9 @@ body {
     padding: 0;
 }
 
-canvas {
+#gewon {
+    position: absolute;
+    opacity: 0;
+    transition: opacity 2s;
+    width: 100%;
 }

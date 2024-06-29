@@ -18,17 +18,22 @@ const config = {
 
 const game = new Phaser.Game(config);
 
-const enemyAssets = ['enemy1', 'enemy2', 'enemy3']; // Replace with your actual enemy asset keys
+const enemyAssets = ['enemy','enemy1', 'enemy2', 'enemy3']; // Replace with your actual enemy asset keys
 
 function preload() {
     // Load your assets here
     this.load.image('background', 'assets/Moosach.png');
     this.load.image('tower', 'assets/JoshuaGesicht.png');
+    this.load.image('enemy', 'assets/Ele.png');
     this.load.image('enemy1', 'assets/Ele1.png');
     this.load.image('enemy2', 'assets/Ele2.png');
     this.load.image('enemy3', 'assets/Ele3.png');
     this.load.image('bullet', 'assets/Stein.png');
+    this.load.audio('smoke', 'assets/gewon.mp3');
 }
+
+let score = 0;
+let scoreText;
 
 let lastFired = 0;
 const fireRate = 500; // Cooldown period in milliseconds (e.g., 500 ms)
@@ -36,14 +41,19 @@ const fireRate = 500; // Cooldown period in milliseconds (e.g., 500 ms)
 const paths = [
     // From top-left to bottom-left
     [
-        { x: 0, y: 50 },
-        { x: window.innerHeight/2 + 300, y: 50 },
-        { x: window.innerHeight/2 + 300, y: 500 },
+        { x: 0, y: 50},
+        { x: window.innerHeight / 2 + 300, y: 50, duration: 1500 },
+        { x: window.innerHeight / 2 + 300, y: 500, duration: 3000 },
     ],
     [
-        { x: window.innerWidth, y: 50 },
-        { x: window.innerHeight/2 + 300, y: 50 },
-        { x: window.innerHeight/2 + 300, y: 500 },
+        { x: window.innerWidth, y: 50, duration: 2000 },
+        { x: window.innerHeight / 2 + 300, y: 50, duration: 1500 },
+        { x: window.innerHeight / 2 + 300, y: 500, duration: 3000 },
+    ],
+    [
+        { x: 50, y: window.innerHeight},
+        { x: window.innerHeight / 2 + 300, y: window.innerHeight, duration: 8000 },
+        { x: window.innerHeight / 2 + 300, y: 500, duration: 8000 },
     ],
 ];
 
@@ -66,6 +76,16 @@ function create() {
     // Example of placing a tower
     const tower = this.towers.create(900, 500, 'tower');
 
+    scoreText = this.add.text(16, 16, 'Score: ' + score, {
+        fontSize: '48px',     // Larger font size
+        fill: '#ffffff',      // White text color
+        backgroundColor: '#000000', // Black background color
+        padding: { x: 10, y: 10 },  // Padding around the text
+        border: '2px solid #ffffff', // Optional: border around the text
+        stroke: '#ff0000',    // Red stroke color
+        strokeThickness: 4    // Stroke thickness
+    });
+
     // Spawn enemies at random intervals
     this.time.addEvent({
         delay: 2000, // Spawn an enemy every 2000 ms (2 seconds)
@@ -76,6 +96,8 @@ function create() {
 
     // Collision detection between bullets and enemies
     this.physics.add.overlap(this.bullets, this.enemies, hitEnemy, null, this);
+
+    this.soundEffect = this.sound.add('smoke');
 }
 
 function spawnEnemy() {
@@ -87,7 +109,7 @@ function spawnEnemy() {
 
     // Create the enemy at the start of the selected path
     const enemy = this.enemies.create(randomPath[0].x, randomPath[0].y, randomEnemyAsset);
-    enemy.setScale(0.8); // Scale the enemy to 120% of its original size
+    enemy.setScale(0.8); // Scale the enemy to 80% of its original size
 
     // Function to create subsequent tweens
     const createTween = (enemy, path, index) => {
@@ -97,20 +119,24 @@ function spawnEnemy() {
                 x: path[index].x,
                 y: path[index].y,
                 ease: 'Linear',
-                duration: 1000, // Adjust the duration for each segment as needed
+                duration: path[index].duration, // Use the duration from the path segment
                 onComplete: () => {
                     createTween(enemy, path, index + 1);
                 },
                 onCompleteScope: this
             });
         } else {
-            enemy.destroy(); // Destroy the enemy when it reaches the goal
+            const gewon = document.getElementById('gewon');
+            gewon.style.opacity = 1;
+            this.soundEffect.play();
+            enemy.destroy();
         }
     };
 
     // Start the chain of tweens
     createTween(enemy, randomPath, 1);
 }
+
 
 
 function update(time, delta) {
@@ -138,10 +164,11 @@ function update(time, delta) {
         const speed = 300; // Set the speed of the bullet
         bullet.setVelocity(direction.x * speed, direction.y * speed);
     }
-    
+    scoreText.setText('Score: ' + score);
 }
 
 function hitEnemy(bullet, enemy) {
+    score += 1;
     bullet.destroy();
     enemy.destroy();
 }
