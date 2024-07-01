@@ -16,9 +16,18 @@ const config = {
     }
 };
 
+function game_over() {
+    const new_game = document.getElementById('new-game');
+    new_game.setAttribute('opacity', 1)
+    this.soundEffect.play();
+    new_game.addEventListener('click', _ => {
+    window.location.reload();
+    })
+}
+
 const game = new Phaser.Game(config);
 
-const enemyAssets = ['enemy','enemy1', 'enemy2', 'enemy3']; // Replace with your actual enemy asset keys
+const enemyAssets = ['enemy', 'enemy1', 'enemy2', 'enemy3']; // Replace with your actual enemy asset keys
 
 function preload() {
     // Load your assets here
@@ -41,7 +50,7 @@ const fireRate = 500; // Cooldown period in milliseconds (e.g., 500 ms)
 const paths = [
     // From top-left to bottom-left
     [
-        { x: 0, y: 50},
+        { x: 0, y: 50 },
         { x: window.innerHeight / 2 + 300, y: 50, duration: 1500 },
         { x: window.innerHeight / 2 + 300, y: 500, duration: 3000 },
     ],
@@ -51,7 +60,7 @@ const paths = [
         { x: window.innerHeight / 2 + 300, y: 500, duration: 3000 },
     ],
     [
-        { x: 50, y: window.innerHeight},
+        { x: 50, y: window.innerHeight },
         { x: window.innerHeight / 2 + 300, y: window.innerHeight, duration: 8000 },
         { x: window.innerHeight / 2 + 300, y: 500, duration: 8000 },
     ],
@@ -74,16 +83,14 @@ function create() {
     this.bullets = this.physics.add.group();
 
     // Example of placing a tower
-    const tower = this.towers.create(900, 500, 'tower');
+    const joshua = this.towers.create(900, 500, 'tower');
 
-    scoreText = this.add.text(16, 16, 'Score: ' + score, {
+    scoreText = this.add.text(16, 16, score, {
         fontSize: '48px',     // Larger font size
         fill: '#ffffff',      // White text color
         backgroundColor: '#000000', // Black background color
         padding: { x: 10, y: 10 },  // Padding around the text
         border: '2px solid #ffffff', // Optional: border around the text
-        stroke: '#ff0000',    // Red stroke color
-        strokeThickness: 4    // Stroke thickness
     });
 
     // Spawn enemies at random intervals
@@ -125,8 +132,14 @@ function spawnEnemy() {
                 },
                 onCompleteScope: this
             });
-        } else {
+        } else if (enemy.displayList != null){
             const gewon = document.getElementById('gewon');
+            gewon.style.pointerEvents = 'all';
+            gewon.style.opacity = 1;
+            this.soundEffect.play();
+            enemy.destroy();
+            this.scene.stop();
+        } else {
             enemy.destroy();
         }
     };
@@ -162,7 +175,7 @@ function update(time, delta) {
         const speed = 300; // Set the speed of the bullet
         bullet.setVelocity(direction.x * speed, direction.y * speed);
     }
-    scoreText.setText('Score: ' + score);
+    scoreText.setText('Elis vertrieben: ' + score);
 }
 
 function hitEnemy(bullet, enemy) {
