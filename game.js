@@ -127,8 +127,6 @@ function spawnEnemy() {
             });
         } else {
             const gewon = document.getElementById('gewon');
-            gewon.style.opacity = 1;
-            this.soundEffect.play();
             enemy.destroy();
         }
     };
